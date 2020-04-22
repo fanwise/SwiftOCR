@@ -57,10 +57,11 @@ open class SwiftOCRTraining {
         let randomCode: () -> String = {
             let randomCharacter: () -> String = {
                 
-                let charArray = Array(recognizableCharacters.characters)
+                let charArray = Array(recognizableCharacters)
                 let randomDouble = Double(arc4random())/(Double(UINT32_MAX) + 1)
-                let randomIndex  = Int(floor(randomDouble * Double(charArray.count)))
-                return String(charArray[randomIndex])
+                let randomIndex  = Int(floor(randomDouble * Double(recognizableCharacters.count)))
+                let index = recognizableCharacters.index(recognizableCharacters.startIndex, offsetBy: randomIndex)
+                return String(recognizableCharacters[index])
             }
             
             var code = ""
@@ -88,7 +89,7 @@ open class SwiftOCRTraining {
             return OCRFont(name: randomFontName(), size: 45 + randomFloat(5))!
         }
     
-        let randomFontAttributes: () -> [NSAttributedStringKey: Any] = {
+        let randomFontAttributes: () -> [NSAttributedString.Key: Any] = {
             
             let paragraphStyle       = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
             paragraphStyle.alignment = NSTextAlignment.center
@@ -190,9 +191,10 @@ open class SwiftOCRTraining {
                     
                     let imageData = ocrInstance.convertImageToFloatArray(blob.0)
                     
-                    var imageAnswer = [Float](repeating: 0, count: recognizableCharacters.characters.count)
-                    if let index = Array(recognizableCharacters.characters).index(of: Array(code.characters)[blobIndex]) {
-                        imageAnswer[index] = 1
+                    var imageAnswer = [Float](repeating: 0, count: recognizableCharacters.count)
+                    if let index = recognizableCharacters.firstIndex(of: code[code.index(code.startIndex, offsetBy: blobIndex)]) {
+                        let distance = recognizableCharacters.distance(from: recognizableCharacters.startIndex, to: index)
+                        imageAnswer[distance] = 1
                     }
                     
                     trainingSet.append((imageData,imageAnswer))
@@ -274,10 +276,10 @@ open class SwiftOCRTraining {
                     
                     for (blobIndex, blob) in blobs.enumerated() {
                         let imageData = ocrInstance.convertImageToFloatArray(blob.0)
-                        
-                        var imageAnswer = [Float](repeating: 0, count: recognizableCharacters.characters.count)
-                        if let index = Array(recognizableCharacters.characters).index(of: characters[blobIndex]) {
-                            imageAnswer[index] = 1
+                        var imageAnswer = [Float](repeating: 0, count: recognizableCharacters.count)
+                        if let index = recognizableCharacters.firstIndex(of: characters[blobIndex]) {
+                            let distance = recognizableCharacters.distance(from: recognizableCharacters.startIndex, to: index)
+                            imageAnswer[distance] = 1
                         }
                         
                         trainingSet.append((imageData,imageAnswer))
@@ -308,7 +310,7 @@ open class SwiftOCRTraining {
      */
     
     open   func testOCR(_ completionHandler: (Double) -> Void) {
-        let testData  = generateRealisticCharSet(recognizableCharacters.characters.count)
+        let testData  = generateRealisticCharSet(recognizableCharacters.count)
         
         var correctCount = 0
         var totalCount   = 0
@@ -317,9 +319,10 @@ open class SwiftOCRTraining {
             totalCount += 1
             do {
                 let networkResult = try globalNetwork.update(inputs: i.0)
+                let startIndex = recognizableCharacters.startIndex
                 
-                let input      = Array(recognizableCharacters.characters)[i.1.index(of: 1)!]
-                let recognized = Array(recognizableCharacters.characters)[networkResult.index(of: networkResult.max() ?? 0) ?? 0]
+                let input      = recognizableCharacters.index(startIndex, offsetBy: i.1.firstIndex(of: 1)!)
+                let recognized = recognizableCharacters.index(startIndex, offsetBy: networkResult.firstIndex(of: networkResult.max() ?? 0) ?? 0)
                 
                 print(input, recognized)
                 
