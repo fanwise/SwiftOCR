@@ -73,7 +73,7 @@ open class SwiftOCRTraining {
             return code
         }
         
-        let randomFloat: (CGFloat) -> CGFloat = { modi in
+        let randomFloat: (CGFloat) -> CGFloat = { (modi: CGFloat) in
             return  (0 - modi) + CGFloat(arc4random()) / CGFloat(UINT32_MAX) * (modi * 2)
         }
         
@@ -220,7 +220,7 @@ open class SwiftOCRTraining {
         
         var trainingSet = [([Float],[Float])]()
         
-        let randomFloat: (CGFloat) -> CGFloat = { modi in
+        let randomFloat: (CGFloat) -> CGFloat = { (modi: CGFloat) in
             return  (0 - modi) + CGFloat(arc4random()) / CGFloat(UINT32_MAX) * (modi * 2)
         }
         
